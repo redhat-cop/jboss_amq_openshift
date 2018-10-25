@@ -60,5 +60,18 @@
       register: amq_dc
 
     - name: Update ddeployment configuration to include service account
-      debug:
-        msg: TODO
+      k8s:
+        state: present
+        definition:
+          apiVersion: apps.openshift.io/v1
+          kind: DeploymentConfig
+          metadata:
+            name: broker-amq
+            namespace: "{{ openshift_namespace }}"
+          spec:
+            template:
+              metadata:
+                name: broker-amq
+              spec:
+                serviceAccount: "{{ openshift_service_account }}"
+                serviceAccountName: "{{ openshift_service_account }}"
