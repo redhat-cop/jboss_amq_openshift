@@ -46,6 +46,8 @@
         oc get dc broker-amq
       register: amq_dc
       ignore_errors: yes
+      failed_when: False
+      no_log: True
 
     - name: Deploy if not already deployed
       shell: >
