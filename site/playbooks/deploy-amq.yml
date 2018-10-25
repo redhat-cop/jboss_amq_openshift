@@ -41,6 +41,22 @@
           userNames:
             - "system:serviceaccount:{{ openshift_namespace }}:{{ openshift_service_account }}"
 
-    - name: Deploy A-MQ
+    - name: Retrieve deployment configuration, if it already exists
+      command:
+        oc get dc broker-amq
+      register: amq_dc
+      ignore_errors: yes
+
+    - name: Deploy if not already deployed
       shell: >
         oc process openshift//amq63-basic -o yaml | oc create -f -
+      when: amq_dc.rc != 0
+
+    - name: Retrieve deployment configuration
+      command: >
+        oc get dc broker-amq -o yaml
+      register: amq_dc
+
+    - name: Update ddeployment configuration to include service account
+      debug:
+        msg: TODO
