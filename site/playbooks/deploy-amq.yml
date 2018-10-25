@@ -1,0 +1,42 @@
+---
+- hosts: localhost
+  vars:
+    openshift_namespace: amq-stage
+    openshift_service_account: amq-service-account
+
+  tasks:
+    - name: Create OpenShift namespace
+      k8s:
+        name: "{{ openshift_namespace }}"
+        api_version: v1
+        kind: namespace
+        state: present
+
+    - name: Create OpenShift service account
+      k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: ServiceAccount
+          metadata:
+            name: "{{ openshift_service_account }}"
+            namespace: "{{ openshift_namespace }}"
+
+    - name: Add OpenShift view role to service account
+      k8s:
+        state: present
+        definition:
+          apiVersion: authorization.openshift.io/v1
+          kind: RoleBinding
+          groupNames: null
+          metadata:
+            name: view
+            namespace: "{{ openshift_namespace }}"
+          roleRef:
+            name: view
+          subjects:
+            - kind: ServiceAccount
+              name: "{{ openshift_service_account }}"
+              namespace: "{{ openshift_namespace }}"
+          userNames:
+            - "system:serviceaccount:{{ openshift_namespace }}:{{ openshift_service_account }}"
