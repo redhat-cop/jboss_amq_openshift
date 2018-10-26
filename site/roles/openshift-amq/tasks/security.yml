@@ -1,4 +1,4 @@
----
+ cryptographic container---
 - name: Create temporary directory to hold generated certificates and keystore
   tempfile:
     state: directory
@@ -19,16 +19,16 @@
     organization_name: Sempra Energy
     organizational_unit_name: IT
 
-- name: Generate certificate for key store
+- name: Generate certificate
   openssl_certificate:
     path: "{{ cert_dir.path }}/certificate.pem"
     privatekey_path: "{{ cert_dir.path }}/key.pem"
     csr_path: "{{ cert_dir.path }}/csr.pem"
     provider: selfsigned
 
-- name: Generate keystore password
+- name: Generate cryptographic container password
   set_fact:
-    keystore_password: "{{ lookup('password', '/dev/null length=15') }}"
+    crypto_password: "{{ lookup('password', '/dev/null length=15') }}"
 
 - name: Create PKCS#12
   openssl_pkcs12:
@@ -37,21 +37,21 @@
     friendly_name: broker
     certificate_path: "{{ cert_dir.path }}/certificate.pem"
     privatekey_path: "{{ cert_dir.path }}/key.pem"
-    passphrase: "{{ keystore_password }}"
+    passphrase: "{{ crypto_password }}"
     state: present
 
 - name: Show generated password ---- TODO REMOVE THIS WHEN FINISHED
   debug:
-    var: keystore_password
+    var: crypto_password
 
 - name: Import PKCS#12 into key store
   java_cert:
     pkcs12_path: "{{ cert_dir.path }}/chain.p12"
-    pkcs12_password: "{{ keystore_password }}"
+    pkcs12_password: "{{ crypto_password }}"
     pkcs12_alias: broker
     cert_alias: broker
     keystore_path: "{{ cert_dir.path }}/keystore"
-    keystore_pass: "{{ keystore_password }}"
+    keystore_pass: "{{ crypto_password }}"
     keystore_create: yes
     state: present
 
