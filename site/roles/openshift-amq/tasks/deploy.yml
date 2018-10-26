@@ -1,0 +1,74 @@
+---
+- name: Create OpenShift namespace
+  k8s:
+    name: "{{ openshift_namespace }}"
+    api_version: v1
+    kind: namespace
+    state: present
+
+- name: Create OpenShift service account
+  k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: "{{ openshift_service_account }}"
+        namespace: "{{ openshift_namespace }}"
+
+- name: Add OpenShift view role to service account
+  k8s:
+    state: present
+    definition:
+      apiVersion: authorization.openshift.io/v1
+      kind: RoleBinding
+      groupNames: null
+      metadata:
+        name: view
+        namespace: "{{ openshift_namespace }}"
+        roleRef:
+          name: view
+          subjects:
+            - kind: ServiceAccount
+              name: "{{ openshift_service_account }}"
+              namespace: "{{ openshift_namespace }}"
+          userNames:
+            - "system:serviceaccount:{{ openshift_namespace }}:{{ openshift_service_account }}"
+
+- name: Check if already deployed
+  command:
+    oc get dc broker-amq
+  register: amq_dc
+  ignore_errors: yes
+  failed_when: False
+  no_log: True
+
+- name: Deploy
+  shell: >
+    oc process openshift//amq63-basic -o yaml | oc create -f -
+  when: amq_dc.rc != 0
+
+- name: Retrieve deployment configuration
+  command: >
+    oc get dc broker-amq -o yaml
+  register: amq_dc
+
+- name: Update deployment configuration to include service account
+  k8s:
+    state: present
+    definition:
+      apiVersion: apps.openshift.io/v1
+      kind: DeploymentConfig
+      metadata:
+        name: broker-amq
+        namespace: "{{ openshift_namespace }}"
+        spec:
+          template:
+            metadata:
+              name: broker-amq
+              spec:
+                serviceAccount: "{{ openshift_service_account }}"
+                serviceAccountName: "{{ openshift_service_account }}"
+
+- name: Expose route
+  debug: msg="TODO"

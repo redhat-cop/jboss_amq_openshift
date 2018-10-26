@@ -1,0 +1,8 @@
+---
+- include: security.yml
+  tags:
+    - openshift:amq:security
+
+- include: deploy.yml
+  tags:
+    - openshift:amq:deploy

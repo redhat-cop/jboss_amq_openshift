@@ -1,0 +1,3 @@
+---
+openshift_namespace: amq-stage
+openshift_service_account: amq-service-account
