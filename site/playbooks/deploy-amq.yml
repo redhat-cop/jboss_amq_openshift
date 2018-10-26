@@ -92,7 +92,7 @@
             passphrase: "{{ keystore_password }}"
             state: present
 
-        - name: Show generated password ---- TODO: REMOVE THIS WHEN FINISHED
+        - name: Show generated password ---- TODO REMOVE THIS WHEN FINISHED
           debug:
             var: keystore_password
 
