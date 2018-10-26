@@ -1,0 +1,5 @@
+---
+- name: Remove temporary directory housing generated certificates and keystore
+  file:
+    state: absent
+    path: "{{ cert_dir.path }}"

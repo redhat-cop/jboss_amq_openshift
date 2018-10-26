@@ -6,3 +6,7 @@
 - include: deploy.yml
   tags:
     - openshift:amq:deploy
+
+- include: cleanup.yml
+  tags:
+    - openshift:amq:cleanup
