@@ -41,7 +41,7 @@
           userNames:
             - "system:serviceaccount:{{ openshift_namespace }}:{{ openshift_service_account }}"
 
-    - name: Retrieve deployment configuration, if it already exists
+    - name: Check if already deployed
       command:
         oc get dc broker-amq
       register: amq_dc
@@ -49,9 +49,76 @@
       failed_when: False
       no_log: True
 
-    - name: Deploy if not already deployed
-      shell: >
-        oc process openshift//amq63-basic -o yaml | oc create -f -
+    - name: Generate certificates and keystore and deploy
+      block: 
+        - name: Create temporary directory to hold generated certificates and keystore
+          tempfile:
+            state: directory
+          register: cert_dir
+
+        - name: Generate certificate private key
+          openssl_privatekey:
+            path: "{{ cert_dir.path }}/key.pem"
+
+        - name: Generate certificate sign request
+          openssl_csr:
+            path: "{{ cert_dir.path }}/csr.pem"
+            privatekey_path: "{{ cert_dir.path }}/key.pem"
+            common_name: broker-amq
+            country_name: US
+            state_or_province_name: CA
+            locality_name: San Diego
+            organization_name: Sempra Energy
+            organizational_unit_name: IT
+
+        - name: Generate certificate for key store
+          openssl_certificate:
+            path: "{{ cert_dir.path }}/certificate.pem"
+            privatekey_path: "{{ cert_dir.path }}/key.pem"
+            csr_path: "{{ cert_dir.path }}/csr.pem"
+            provider: selfsigned
+
+        - name: Generate keystore password
+          set_fact:
+            keystore_password: "{{ lookup('password', '/dev/null length=15') }}"
+
+        - name: Create PKCS#12
+          openssl_pkcs12:
+            action: export
+            path: "{{ cert_dir.path }}/chain.p12"
+            friendly_name: broker
+            certificate_path: "{{ cert_dir.path }}/certificate.pem"
+            privatekey_path: "{{ cert_dir.path }}/key.pem"
+            passphrase: "{{ keystore_password }}"
+            state: present
+
+        - name: Show generated password ---- TODO: REMOVE THIS WHEN FINISHED
+          debug:
+            var: keystore_password
+
+        - name: Import PKCS#12 into key store
+          java_cert:
+            pkcs12_path: "{{ cert_dir.path }}/chain.p12"
+            pkcs12_password: "{{ keystore_password }}"
+            pkcs12_alias: broker
+            cert_alias: broker
+            keystore_path: "{{ cert_dir.path }}/keystore"
+            keystore_pass: "{{ keystore_password }}"
+            keystore_create: yes
+            state: present
+
+        - name: Generate OpenShift secrets from key store
+          debug: msg="TODO"
+
+        - name: Deploy
+          shell: >
+            oc process openshift//amq63-basic -o yaml | oc create -f -
+
+        - name: Remove temporary directory housing generated certificates and keystore
+          file:
+            state: absent
+            path: "{{ cert_dir.path }}"
+          when: False
       when: amq_dc.rc != 0
 
     - name: Retrieve deployment configuration
@@ -59,7 +126,7 @@
         oc get dc broker-amq -o yaml
       register: amq_dc
 
-    - name: Update ddeployment configuration to include service account
+    - name: Update deployment configuration to include service account
       k8s:
         state: present
         definition:
@@ -75,3 +142,9 @@
               spec:
                 serviceAccount: "{{ openshift_service_account }}"
                 serviceAccountName: "{{ openshift_service_account }}"
+
+    - name: Add secrets to OpenShift service account
+      debug: msg="TOOD"
+
+    - name: Expose route
+      debug: msg="TODO"
