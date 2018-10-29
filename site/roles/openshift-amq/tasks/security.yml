@@ -56,7 +56,7 @@
     pkcs12_password: "{{ pkcs12_password }}"
     pkcs12_alias: broker
     cert_alias: broker
-    keystore_path: "{{ cert_dir.path }}/keystore"
+    keystore_path: "{{ cert_dir.path }}/{{ amq_keystore }}"
     keystore_pass: "{{ keystore_password }}"
     keystore_create: yes
     state: present
@@ -65,7 +65,7 @@
   java_cert:
     cert_path: "{{ cert_dir.path }}/certificate.pem"
     cert_alias: broker
-    keystore_path: "{{ cert_dir.path }}/truststore"
+    keystore_path: "{{ cert_dir.path }}/{{ amq_truststore }}"
     keystore_pass: "{{ truststore_password }}"
     keystore_create: yes
     state: present
