@@ -3,56 +3,69 @@
     state: directory
   register: cert_dir
 
-- name: Generate certificate private key
-  openssl_privatekey:
-    path: "{{ cert_dir.path }}/key.pem"
+- name: Generate passowrds
+  block:
+    - name: Generate PKCS#12 password
+      set_fact:
+        pkcs12_password: "{{ lookup('password', '/dev/null length=15') }}"
+      when: pkcs12_password is not defined
 
-- name: Generate certificate sign request
-  openssl_csr:
-    path: "{{ cert_dir.path }}/csr.pem"
-    privatekey_path: "{{ cert_dir.path }}/key.pem"
-    common_name: broker-amq
-    country_name: US
-    state_or_province_name: CA
-    locality_name: San Diego
-    organization_name: Sempra Energy
-    organizational_unit_name: IT
+    - name: Generate key store password
+      set_fact:
+        keystore_password: "{{ lookup('password', '/dev/null length=15') }}"
+      when: keystore_password is not defined
 
-- name: Generate certificate
-  openssl_certificate:
-    path: "{{ cert_dir.path }}/certificate.pem"
-    privatekey_path: "{{ cert_dir.path }}/key.pem"
-    csr_path: "{{ cert_dir.path }}/csr.pem"
-    provider: selfsigned
+    - name: Generate trust store password
+      set_fact:
+        truststore_password: "{{ lookup('password', '/dev/null length=15') }}"
+      when: truststore_password is not defined
 
-- name: Generate PKCS#12 password
-  set_fact:
-    pkcs12_password: "{{ lookup('password', '/dev/null length=15') }}"
-  when: pkcs12_password is not defined
+- name: Generate certificates and PKCS#12 file
+  block:
+    - name: Derive PKCS#12 generated file path name
+      set_fact:
+        pkcs12_generated_file: "{{ cert_dir.path }}/chain.p12"
 
-- name: Generate key store password
-  set_fact:
-    keystore_password: "{{ lookup('password', '/dev/null length=15') }}"
-  when: keystore_password is not defined
+    - name: Generate certificate private key
+      openssl_privatekey:
+        path: "{{ cert_dir.path }}/key.pem"
 
-- name: Generate trust store password
-  set_fact:
-    truststore_password: "{{ lookup('password', '/dev/null length=15') }}"
-  when: truststore_password is not defined
+    - name: Generate certificate sign request
+      openssl_csr:
+        path: "{{ cert_dir.path }}/csr.pem"
+        privatekey_path: "{{ cert_dir.path }}/key.pem"
+        common_name: broker-amq
+        country_name: US
+        state_or_province_name: CA
+        locality_name: San Diego
+        organization_name: Sempra Energy
+        organizational_unit_name: IT
 
-- name: Create PKCS#12
-  openssl_pkcs12:
-    action: export
-    path: "{{ cert_dir.path }}/chain.p12"
-    friendly_name: broker
-    certificate_path: "{{ cert_dir.path }}/certificate.pem"
-    privatekey_path: "{{ cert_dir.path }}/key.pem"
-    passphrase: "{{ pkcs12_password }}"
-    state: present
+    - name: Generate certificate
+      openssl_certificate:
+        path: "{{ cert_dir.path }}/certificate.pem"
+        privatekey_path: "{{ cert_dir.path }}/key.pem"
+        csr_path: "{{ cert_dir.path }}/csr.pem"
+        provider: selfsigned
+
+    - name: Create PKCS#12
+      openssl_pkcs12:
+        action: export
+        path: "{{ pkcs12_generated_file }}"
+        friendly_name: broker
+        certificate_path: "{{ cert_dir.path }}/certificate.pem"
+        privatekey_path: "{{ cert_dir.path }}/key.pem"
+        passphrase: "{{ pkcs12_password }}"
+        state: present
+
+    - name: Ensure generated PKCS#12 file is used
+      set_fact:
+        pkcs12_file: "{{ pkcs12_generated_file }}"
+  when: pkcs12_file is not defined
 
 - name: Import PKCS#12 into key store
   java_cert:
-    pkcs12_path: "{{ cert_dir.path }}/chain.p12"
+    pkcs12_path: "{{ pkcs12_file }}"
     pkcs12_password: "{{ pkcs12_password }}"
     pkcs12_alias: broker
     cert_alias: broker
