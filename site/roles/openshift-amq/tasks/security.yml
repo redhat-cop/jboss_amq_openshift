@@ -25,9 +25,17 @@
     csr_path: "{{ cert_dir.path }}/csr.pem"
     provider: selfsigned
 
-- name: Generate cryptographic container password
+- name: Generate PKCS#12 password
   set_fact:
-    crypto_password: "{{ lookup('password', '/dev/null length=15') }}"
+    pkcs12_password: "{{ lookup('password', '/dev/null length=15') }}"
+
+- name: Generate key store password
+  set_fact:
+    keystore_password: "{{ lookup('password', '/dev/null length=15') }}"
+
+- name: Generate trust store password
+  set_fact:
+    truststore_password: "{{ lookup('password', '/dev/null length=15') }}"
 
 - name: Create PKCS#12
   openssl_pkcs12:
@@ -36,21 +44,17 @@
     friendly_name: broker
     certificate_path: "{{ cert_dir.path }}/certificate.pem"
     privatekey_path: "{{ cert_dir.path }}/key.pem"
-    passphrase: "{{ crypto_password }}"
+    passphrase: "{{ pkcs12_password }}"
     state: present
-
-- name: Show generated password ---- TODO REMOVE THIS WHEN FINISHED
-  debug:
-    var: crypto_password
 
 - name: Import PKCS#12 into key store
   java_cert:
     pkcs12_path: "{{ cert_dir.path }}/chain.p12"
-    pkcs12_password: "{{ crypto_password }}"
+    pkcs12_password: "{{ pkcs12_password }}"
     pkcs12_alias: broker
     cert_alias: broker
     keystore_path: "{{ cert_dir.path }}/keystore"
-    keystore_pass: "{{ crypto_password }}"
+    keystore_pass: "{{ keystore_password }}"
     keystore_create: yes
     state: present
 
@@ -59,6 +63,6 @@
     cert_path: "{{ cert_dir.path }}/certificate.pem"
     cert_alias: broker
     keystore_path: "{{ cert_dir.path }}/truststore"
-    keystore_pass: changeit
+    keystore_pass: "{{ truststore_password }}"
     keystore_create: yes
     state: present
