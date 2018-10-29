@@ -77,7 +77,7 @@
 
 - name: Generate OpenShift secrets from key store ---- TODO TRY k8s APPROACH
   shell: >
-    cd {{ cert_dir.path }} && oc secrets new amq-app-secret keystore truststore
+    oc secrets new amq-app-secret {{ cert_dir.path }}/keystore {{ cert_dir.path }}/truststore
 
 - name: Add secrets to OpenShift service account ---- TODO try k8s APPROACH
   shell: >
