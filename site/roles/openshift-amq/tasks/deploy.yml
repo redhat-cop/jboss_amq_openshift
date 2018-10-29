@@ -26,14 +26,14 @@
       metadata:
         name: view
         namespace: "{{ openshift_namespace }}"
-        roleRef:
-          name: view
-          subjects:
-            - kind: ServiceAccount
-              name: "{{ openshift_service_account }}"
-              namespace: "{{ openshift_namespace }}"
-          userNames:
-            - "system:serviceaccount:{{ openshift_namespace }}:{{ openshift_service_account }}"
+      roleRef:
+        name: view
+      subjects:
+        - kind: ServiceAccount
+          name: "{{ openshift_service_account }}"
+          namespace: "{{ openshift_namespace }}"
+      userNames:
+        - "system:serviceaccount:{{ openshift_namespace }}:{{ openshift_service_account }}"
 
 - name: Check if already deployed
   command:
