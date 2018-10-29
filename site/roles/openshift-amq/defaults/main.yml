@@ -1,3 +1,8 @@
 ---
 openshift_namespace: amq-stage
 openshift_service_account: amq-service-account
+
+# PKCS#12, key store and trust store passwords (if not defined, will be automatically generated)
+#pkcs12_password: changeit1
+#keystore_password: changeit
+#truststore_password: changeit

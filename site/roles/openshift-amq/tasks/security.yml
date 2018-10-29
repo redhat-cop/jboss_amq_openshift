@@ -28,14 +28,17 @@
 - name: Generate PKCS#12 password
   set_fact:
     pkcs12_password: "{{ lookup('password', '/dev/null length=15') }}"
+  when: pkcs12_password is not defined
 
 - name: Generate key store password
   set_fact:
     keystore_password: "{{ lookup('password', '/dev/null length=15') }}"
+  when: keystore_password is not defined
 
 - name: Generate trust store password
   set_fact:
     truststore_password: "{{ lookup('password', '/dev/null length=15') }}"
+  when: truststore_password is not defined
 
 - name: Create PKCS#12
   openssl_pkcs12:
