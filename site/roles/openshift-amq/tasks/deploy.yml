@@ -43,9 +43,14 @@
   failed_when: False
   no_log: True
 
+- name: Generate OpenShift parameters needed for deployment
+  template:
+    src: openshift-process-parameters.j2
+    dest: "{{ cert_dir.path }}/env"
+
 - name: Deploy
   shell: >
-    oc process openshift//amq63-basic -o yaml | oc create -f -
+    oc process openshift//amq63-ssl -o yaml --param-file={{ cert_dir.path }}/env | oc create -f -
   when: amq_dc.rc != 0
 
 - name: Retrieve deployment configuration
@@ -69,6 +74,14 @@
               spec:
                 serviceAccount: "{{ openshift_service_account }}"
                 serviceAccountName: "{{ openshift_service_account }}"
+
+- name: Generate OpenShift secrets from key store ---- TODO TRY k8s APPROACH
+  shell: >
+    oc secrets new amq-app-secret {{ cert_dir.path }}/keystore {{ cert_dir.path }}/truststore
+
+- name: Add secrets to OpenShift service account ---- TODO try k8s APPROACH
+  shell: >
+    oc secrets add sa/{{ openshift_service_account }} secret/amq-app-secret
 
 - name: Expose route
   debug: msg="TODO"

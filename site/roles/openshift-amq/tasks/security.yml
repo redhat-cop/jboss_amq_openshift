@@ -54,8 +54,11 @@
     keystore_create: yes
     state: present
 
-- name: Generate OpenShift secrets from key store
-  debug: msg="TODO"
-
-- name: Add secrets to OpenShift service account
-  debug: msg="TOOD"
+- name: Generate trust store
+  java_cert:
+    cert_path: "{{ cert_dir.path }}/certificate.pem"
+    cert_alias: broker
+    keystore_path: "{{ cert_dir.path }}/truststore"
+    keystore_pass: changeit
+    keystore_create: yes
+    state: present
