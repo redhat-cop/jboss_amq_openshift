@@ -1,4 +1,22 @@
 ---
+- name: Test new module
+  block:
+    - name: Show variables
+      debug:
+        msg: "PKCS#12 file='{{ pkcs12_file }}', PKCS#12 passphrase='{{ pkcs12_password }}'"
+
+    - name: Process PKCS#12 file into PEM chain as a list
+      openssl_pksc12_certificate_chain:
+        src: "{{ pkcs12_file }}"
+        passphrase: "{{ pkcs12_password }}"
+
+    - name: Fail intentionally
+      fail:
+        msg: "Dead Jim"
+  tags:
+    - openshift:amq:security
+  when: False
+
 - include: security.yml
   tags:
     - openshift:amq:security
