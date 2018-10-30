@@ -5,6 +5,9 @@ openshift_service_account: amq-service-account
 # Path to PKCS#12 file containing certificate chain to use (if not defined, will be automatically generated)
 #pkcs12_file: /path/to/pkcs12-file
 
+# Alias within the PKCS#12 file containing the desired certificate chain
+pkcs12_alias: broker
+
 # AMQ key and trust store file names to use to split out PKCS#12 and for OpenShift secrets
 amq_keystore: amq-keystore.jks
 amq_truststore: amq-truststore.jks

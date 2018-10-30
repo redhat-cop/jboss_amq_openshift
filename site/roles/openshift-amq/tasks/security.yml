@@ -52,7 +52,7 @@
       openssl_pkcs12:
         action: export
         path: "{{ pkcs12_generated_file }}"
-        friendly_name: broker
+        friendly_name: "{{ pkcs12_alias }}"
         certificate_path: "{{ cert_dir.path }}/certificate.pem"
         privatekey_path: "{{ cert_dir.path }}/key.pem"
         passphrase: "{{ pkcs12_password }}"
@@ -67,18 +67,31 @@
   java_cert:
     pkcs12_path: "{{ pkcs12_file }}"
     pkcs12_password: "{{ pkcs12_password }}"
-    pkcs12_alias: broker
+    pkcs12_alias: "{{ pkcs12_alias }}"
     cert_alias: broker
     keystore_path: "{{ cert_dir.path }}/{{ amq_keystore }}"
     keystore_pass: "{{ keystore_password }}"
     keystore_create: yes
     state: present
 
+- name: Extract all certificates from PKCS#12 file into a single PEM
+  command:
+    openssl pkcs12 -in {{ pkcs12_file }} -out {{ cert_dir.path }}/chain.pem -nokeys -passin 'pass:{{ pkcs12_password }}'
+
 - name: Generate trust store
   java_cert:
-    cert_path: "{{ cert_dir.path }}/certificate.pem"
+    cert_path: "{{ cert_dir.path }}/chain.pem"
     cert_alias: broker
     keystore_path: "{{ cert_dir.path }}/{{ amq_truststore }}"
     keystore_pass: "{{ truststore_password }}"
     keystore_create: yes
     state: present
+
+#- name: Generate trust store ---- TODO generate this from the PKCS#12 file instead
+#  java_cert:
+#    cert_path: "{{ cert_dir.path }}/certificate.pem"
+#    cert_alias: broker
+#    keystore_path: "{{ cert_dir.path }}/{{ amq_truststore }}"
+#    keystore_pass: "{{ truststore_password }}"
+#    keystore_create: yes
+#    state: present
