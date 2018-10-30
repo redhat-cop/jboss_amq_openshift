@@ -49,27 +49,28 @@ def main():
     chain.append(c)
 
     # Obtain CA certificate chain
-    for cert in p12.get_ca_certificates():
-        c = {
-            "certificate": crypto.dump_certificate(crypto.FILETYPE_PEM, cert),
-            "fingerprint": {
-                    "algorithm": "SHA1",
-                    "digest": cert.digest("SHA1"),
-                },
-            "has_expired": cert.has_expired(),
-            "issuer": ", ".join("%s=%s" % tup for tup in cert.get_issuer().get_components()),
-            "serial_number": cert.get_serial_number(),
-            "signature_algorithm": cert.get_signature_algorithm(),
-            "subject": ", ".join("%s=%s" % tup for tup in cert.get_subject().get_components()),
-            "validity": {
-                    "not_after": cert.get_notAfter(),
-                    "not_before": cert.get_notBefore(),
-                },
-            "version": cert.get_version() + 1,
-        }
-        c["name"] = "cert-{}".format(cert_number) # TODO See module note above
-        cert_number += 1
-        chain.append(c)
+    if p12.get_ca_certificates() is not None:
+        for cert in p12.get_ca_certificates():
+            c = {
+                "certificate": crypto.dump_certificate(crypto.FILETYPE_PEM, cert),
+                "fingerprint": {
+                        "algorithm": "SHA1",
+                        "digest": cert.digest("SHA1"),
+                    },
+                "has_expired": cert.has_expired(),
+                "issuer": ", ".join("%s=%s" % tup for tup in cert.get_issuer().get_components()),
+                "serial_number": cert.get_serial_number(),
+                "signature_algorithm": cert.get_signature_algorithm(),
+                "subject": ", ".join("%s=%s" % tup for tup in cert.get_subject().get_components()),
+                "validity": {
+                        "not_after": cert.get_notAfter(),
+                        "not_before": cert.get_notBefore(),
+                    },
+                "version": cert.get_version() + 1,
+            }
+            c["name"] = "cert-{}".format(cert_number) # TODO See module note above
+            cert_number += 1
+            chain.append(c)
 
     chain.reverse()
     module.exit_json(changed=True, certificates=chain)
