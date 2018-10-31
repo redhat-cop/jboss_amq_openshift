@@ -9,6 +9,9 @@ from OpenSSL import crypto
 #            * provide a dictionary of the certificate subject (and issuer) for each name compoenent
 #
 
+def x509name_str(x509name):
+    return ", ".join("%s=%s" % tup for tup in x509name.get_components())
+
 def main():
     args = {
         "src": { "required": True, "type": "str" },
@@ -34,10 +37,10 @@ def main():
                 "digest": cert.digest("SHA1"),
             },
         "has_expired": cert.has_expired(),
-        "issuer": ", ".join("%s=%s" % tup for tup in cert.get_issuer().get_components()),
+        "issuer": x509name_str(cert.get_issuer()),
         "serial_number": cert.get_serial_number(),
         "signature_algorithm": cert.get_signature_algorithm(),
-        "subject": ", ".join("%s=%s" % tup for tup in cert.get_subject().get_components()),
+        "subject": x509name_str(cert.get_subject()),
         "validity": {
                 "not_after": cert.get_notAfter(),
                 "not_before": cert.get_notBefore(),
@@ -58,10 +61,10 @@ def main():
                         "digest": cert.digest("SHA1"),
                     },
                 "has_expired": cert.has_expired(),
-                "issuer": ", ".join("%s=%s" % tup for tup in cert.get_issuer().get_components()),
+                "issuer": x509name_str(cert.get_issuer()),
                 "serial_number": cert.get_serial_number(),
                 "signature_algorithm": cert.get_signature_algorithm(),
-                "subject": ", ".join("%s=%s" % tup for tup in cert.get_subject().get_components()),
+                "subject": x509name_str(cert.get_subject()),
                 "validity": {
                         "not_after": cert.get_notAfter(),
                         "not_before": cert.get_notBefore(),
