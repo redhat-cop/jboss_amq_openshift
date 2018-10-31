@@ -1,5 +1,5 @@
 ---
-openshift_namespace: amq-stage
+openshift_namespace: amq
 openshift_service_account: amq-service-account
 
 # Path to PKCS#12 file containing certificate chain to use (if not defined, will be automatically generated)
