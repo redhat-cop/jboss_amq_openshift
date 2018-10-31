@@ -74,10 +74,6 @@
     keystore_create: yes
     state: present
 
-#- name: Extract all certificates from PKCS#12 file into a single PEM
-#  command:
-#    openssl pkcs12 -in {{ pkcs12_file }} -out {{ cert_dir.path }}/chain.pem -nokeys -passin 'pass:{{ pkcs12_password }}'
-
 - name: Obtain all certificates from PKCS#12 file
   openssl_pksc12_certificate_chain:
     src: "{{ pkcs12_file }}"
@@ -105,12 +101,3 @@
     - "{{ chain.certificates }}"
   loop_control:
     label: "{{ item.subject }}"
-
-#- name: Generate trust store ---- TODO generate this from the PKCS#12 file instead
-#  java_cert:
-#    cert_path: "{{ cert_dir.path }}/certificate.pem"
-#    cert_alias: broker
-#    keystore_path: "{{ cert_dir.path }}/{{ amq_truststore }}"
-#    keystore_pass: "{{ truststore_password }}"
-#    keystore_create: yes
-#    state: present
