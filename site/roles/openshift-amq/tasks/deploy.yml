@@ -37,7 +37,7 @@
 
 - name: Check if already deployed
   command:
-    oc get dc broker-amq
+    oc get dc broker-amq -n {{ openshift_namespace }}
   register: amq_dc
   ignore_errors: yes
   failed_when: False
@@ -50,12 +50,12 @@
 
 - name: Deploy
   shell: >
-    oc process openshift//amq63-ssl -o yaml --param-file={{ cert_dir.path }}/env | oc create -f -
+    oc process openshift//amq63-ssl -o yaml --param-file={{ cert_dir.path }}/env | oc create -f - -n {{ openshift_namespace }}
   when: amq_dc.rc != 0
 
 - name: Retrieve deployment configuration
   command: >
-    oc get dc broker-amq -o yaml
+    oc get dc broker-amq -o yaml -n {{ openshift_namespace }}
   register: amq_dc
 
 - name: Update deployment configuration to include service account
@@ -77,11 +77,11 @@
 
 - name: Generate OpenShift secrets from key store ---- TODO TRY k8s APPROACH
   shell: >
-    oc secrets new amq-app-secret {{ cert_dir.path }}/{{ amq_keystore }} {{ cert_dir.path }}/{{ amq_truststore }}
+    oc secrets new amq-app-secret {{ cert_dir.path }}/{{ amq_keystore }} {{ cert_dir.path }}/{{ amq_truststore }} -n {{ openshift_namespace }}
 
 - name: Add secrets to OpenShift service account ---- TODO try k8s APPROACH
   shell: >
-    oc secrets add sa/{{ openshift_service_account }} secret/amq-app-secret
+    oc secrets add sa/{{ openshift_service_account }} secret/amq-app-secret -n {{ openshift_namespace }}
 
 - name: Expose route
   debug: msg="TODO"
