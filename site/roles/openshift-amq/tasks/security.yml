@@ -34,12 +34,12 @@
       openssl_csr:
         path: "{{ cert_dir.path }}/csr.pem"
         privatekey_path: "{{ cert_dir.path }}/key.pem"
-        common_name: broker-amq
-        country_name: US
-        state_or_province_name: CA
-        locality_name: San Diego
-        organization_name: Sempra Energy
-        organizational_unit_name: IT
+        common_name: "{{ certificate_dn.common_name }}"
+        country_name: "{{ certificate_dn.country_name }}"
+        state_or_province_name: "{{ certificate_dn.state_or_province_name }}"
+        locality_name: "{{ certificate_dn.locality_name }}"
+        organization_name: "{{ certificate_dn.organization_name }}"
+        organizational_unit_name: "{{ certificate_dn.organizational_unit_name }}"
 
     - name: Generate certificate
       openssl_certificate:

@@ -16,3 +16,12 @@ amq_truststore: amq-truststore.jks
 #pkcs12_password: changeit1
 #keystore_password: changeit
 #truststore_password: changeit
+
+# Generated certificate DN
+certificate_dn:
+  common_name: broker-amq
+  country_name: US
+  state_or_province_name: CA
+  locality_name: San Diego
+  organization_name: Sempra Energy
+  organizational_unit_name: IT
