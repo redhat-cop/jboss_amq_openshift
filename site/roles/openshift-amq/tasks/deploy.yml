@@ -118,3 +118,19 @@
           name: broker-amq-stomp-ssl
           weight: 100
         wildcardPolicy: None
+
+- name: Attach storage via persistent volume claim (PVC)
+  k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: amq
+        namespace: "{{ openshift_namespace }}"
+      spec:
+        accessModes:
+          - ReadWriteMany
+        resources:
+          requests:
+            storage: 1Gi
