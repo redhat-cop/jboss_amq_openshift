@@ -61,13 +61,41 @@
                 serviceAccount: "{{ openshift_service_account }}"
                 serviceAccountName: "{{ openshift_service_account }}"
 
-- name: Generate OpenShift secrets from key store ---- TODO TRY k8s APPROACH
-  shell: >
-    oc secrets new amq-app-secret {{ cert_dir.path }}/{{ amq_keystore }} {{ cert_dir.path }}/{{ amq_truststore }} -n {{ openshift_namespace }}
+- name: Encode key store
+  slurp:
+    src: "{{ cert_dir.path }}/{{ amq_keystore }}"
+  register: encoded_amq_keystore
 
-- name: Add secrets to OpenShift service account ---- TODO try k8s APPROACH
-  shell: >
-    oc secrets add sa/{{ openshift_service_account }} secret/amq-app-secret -n {{ openshift_namespace }}
+- name: Encode trust store
+  slurp:
+    src: "{{ cert_dir.path }}/{{ amq_truststore }}"
+  register: encoded_amq_truststore
+
+- name: Generate OpenShift secrets for key store and trust store
+  k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      data:
+        amq-keystore.jks: "{{ encoded_amq_keystore.content }}"
+        amq-truststore.jks: "{{ encoded_amq_truststore.content }}"
+      kind: Secret
+      metadata:
+        name: amq-app-secret
+        namespace: "{{ openshift_namespace }}"
+        type: Opaque
+
+- name: Add secrets to OpenShift service account
+  k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: "{{ openshift_service_account }}"
+        namespace: "{{ openshift_namespace }}"
+      secrets:
+        - name: amq-app-secret
 
 - name: Expose secured STOMP route
   k8s:
