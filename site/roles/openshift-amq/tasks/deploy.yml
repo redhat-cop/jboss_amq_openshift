@@ -35,14 +35,6 @@
       userNames:
         - "system:serviceaccount:{{ openshift_namespace }}:{{ openshift_service_account }}"
 
-- name: Check if already deployed
-  command:
-    oc get dc broker-amq -n {{ openshift_namespace }}
-  register: amq_dc
-  ignore_errors: yes
-  failed_when: False
-  no_log: True
-
 - name: Generate OpenShift parameters needed for deployment
   template:
     src: openshift-process-parameters.j2
@@ -50,13 +42,7 @@
 
 - name: Deploy
   shell: >
-    oc process openshift//amq63-ssl -o yaml --param-file={{ cert_dir.path }}/env | oc create -f - -n {{ openshift_namespace }}
-  when: amq_dc.rc != 0
-
-- name: Retrieve deployment configuration
-  command: >
-    oc get dc broker-amq -o yaml -n {{ openshift_namespace }}
-  register: amq_dc
+    oc process openshift//amq63-ssl -o yaml --param-file={{ cert_dir.path }}/env | oc apply -f - -n {{ openshift_namespace }}
 
 - name: Update deployment configuration to include service account
   k8s:
