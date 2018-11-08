@@ -111,6 +111,7 @@
         name: stomp
         namespace: "{{ openshift_namespace }}"
       spec:
+        host: amq-stomp.10.29.203.12.nip.io
         tls:
           termination: passthrough
         to:
