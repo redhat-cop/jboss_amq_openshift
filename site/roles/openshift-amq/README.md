@@ -1,38 +1,111 @@
-Role Name
-=========
+# Role Description
 
-A brief description of the role goes here.
+Install Active-MQ 6.3 in an OpenShift cluster using the Red Hat xPaaS image template
+`amq63-ssl`. A certificate chain and a private key packaged into a
+PKCS#12 file can be used. Otherwise the necessary self-signed certificates will be
+generated.
 
-Requirements
-------------
+This role should only be executed on `localhost` since it makes use of the `k8s` Ansible
+module. Thus, inventory is not required.
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+## Requirements
 
-Role Variables
---------------
+Ansible 2.7+
+Python OpenSSL module: `sudo pip install pyOpenSSL`
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+## Role Variables
 
-Dependencies
-------------
+- `openshift_namespace`
+OpenShift project / namespace A-MQ should be installed in. Will be created if not already
+present.
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+- `openshift_service_account`
+OpenShift service account A-MQ should be configured to use. Will be created if not
+already present.
 
-Example Playbook
-----------------
+- `pkcs12_file`
+Path to PKCS#12 file containing certificate chain to use, including a private key. If not
+defined self-signed certificates will automatically be generated and placed into a
+generated PKCS#12 file.
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+- `pkcs12_alias`
+Alias within the PKCS#12 file containing the desired certificate chain.
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+- `amq_keystore`
+Java key store file name to import the certificate chain and private key into and is
+used as an OpenShift secret.
 
-License
--------
+- `amq_truststore`
+Java trust store file name to import the certificate chain into and is used as an
+OpenShift secret.
 
-BSD
+- `pkcs12_password`
+PKCS#12 password. If not definted the password will be automatically generated. This is
+typically only defined when an `pkcs12_file` is defined as most PKCS#12 files are
+secured with a password.
 
-Author Information
-------------------
+- `keystore_password`
+Java key store password. If not defined will be automatically generated.
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+- `truststore_password`
+Java trust store password. If not defined will be automatically generated.
+
+- `certificate_dn`
+The distinguished name (DN) of the self-signed certificate to use.
+
+## Dependencies
+
+None.
+
+## Example Playbooks
+### Install using all defaults
+````yaml
+---
+- hosts: localhost
+  roles:
+    - openshift-amq
+````
+
+### Install into a specific OpenShift project / namespace
+````yaml
+---
+- hosts: localhost
+
+  roles:
+    - role: openshift-amq
+      openshift_namespace: amq-dev
+````
+
+### Install and generate all certificates using a custom certificate DN
+````yaml
+---
+- hosts: localhost
+
+  roles:
+    - role: openshift-amq
+      certificate_dn:
+        common_name: broker-amq
+        country_name: US
+        state_or_province_name: NC
+        locality_name: Raleigh
+        organization_name: Red Hat
+        organizational_unit_name: Consulting
+````
+
+### Install using specific certificates
+````yaml
+---
+- hosts: localhost
+
+  roles:
+    - role: openshift-amq
+      pkcs12_file: /opt/rh/openshift/certicates/amq.p12
+      pkcs12_paassword: changeit
+      pkcs12_alias: openshift-amq
+````
+
+## Author Information
+
+| Name                  | E-Mail
+| ----                  | ------
+| Christian J. Polizzi  | christian.polizzi@redhat.com
