@@ -10,8 +10,8 @@ module. Thus, inventory is not required.
 
 ## Requirements
 
-Ansible 2.7+
-Python OpenSSL module: `sudo pip install pyOpenSSL`
+- Ansible 2.7+
+- Python OpenSSL module: `sudo pip install pyOpenSSL`
 
 ## Role Variables
 
