@@ -21,7 +21,7 @@ amq_truststore: amq-truststore.jks
 certificate_dn:
   common_name: broker-amq
   country_name: US
-  state_or_province_name: CA
-  locality_name: San Diego
-  organization_name: Sempra Energy
-  organizational_unit_name: IT
+  state_or_province_name: NC
+  locality_name: Raleigh
+  organization_name: Red Hat
+  organizational_unit_name: Consulting
