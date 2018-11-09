@@ -63,7 +63,7 @@ None.
 ---
 - hosts: localhost
   roles:
-    - openshift-amq
+    - jboss_amq_openshift
 ````
 
 ### Install into a specific OpenShift project / namespace
@@ -72,7 +72,7 @@ None.
 - hosts: localhost
 
   roles:
-    - role: openshift-amq
+    - role: jboss_amq_openshift
       openshift_namespace: amq-dev
 ````
 
@@ -82,7 +82,7 @@ None.
 - hosts: localhost
 
   roles:
-    - role: openshift-amq
+    - role: jboss_amq_openshift
       certificate_dn:
         common_name: broker-amq
         country_name: US
@@ -98,7 +98,7 @@ None.
 - hosts: localhost
 
   roles:
-    - role: openshift-amq
+    - role: jboss_amq_openshift
       pkcs12_file: /opt/rh/openshift/certicates/amq.p12
       pkcs12_paassword: changeit
       pkcs12_alias: openshift-amq
